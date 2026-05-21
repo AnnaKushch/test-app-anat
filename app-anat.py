@@ -4,18 +4,14 @@ import re
 
 st.title("📚 Анат Test Trainer")
 
-# ---------- LOAD FIXED PDF ----------
-def load_pdf():
-    with pdfplumber.open("тести анат.pdf") as pdf:
-        text = ""
-        for page in pdf.pages:
-            if page.extract_text():
-                text += page.extract_text() + "\n"
-    return text
-
-
 # ---------- PARSER ----------
+text = ""
 
+with pdfplumber.open(filename) as pdf:
+    for page in pdf.pages:
+        page_text = page.extract_text()
+        if page_text:
+            text += page_text + "\n"
 
 text_clean = text.replace("\xa0", " ")
 
