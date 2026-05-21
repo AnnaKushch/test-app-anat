@@ -1,6 +1,7 @@
 import streamlit as st
 import pdfplumber
 import re
+import random
 
 st.set_page_config(page_title="Test Trainer", layout="centered")
 
@@ -20,27 +21,39 @@ def load_pdf():
 # ---------- PARSER (твоя логика) ----------
 def parse_tests(text):
 
-    text = text.replace("\xa0", " ")
-    blocks = re.split(r"\n?\d+\.\s", text)
+    text_clean = text.replace("\xa0", " ")
 
-    tests = []
+# 🔥 заменяем кириллическую А на латинскую A
+text_clean = text_clean.replace("А)", "A)")
+text_clean = text_clean.replace("В)", "B)")
+text_clean = text_clean.replace("С)", "C)")
+text_clean = text_clean.replace("D)", "D)")
+text_clean = text_clean.replace("E)", "E)")
 
-    for block in blocks:
-        block = block.strip()
-        if not block:
-            continue
+blocks = re.split(r"\n?\d+\.\s", text_clean)
 
-        question = re.split(r"[A-E]\)", block)[0].strip()
+tests = []
 
-        options = re.findall(r"[A-E]\)\s*(.*?)(?=(?:[A-E]\)|$))", block, re.S)
-        options = [o.replace("\n", " ").strip().rstrip(";") for o in options]
+for block in blocks:
 
-        if len(options) >= 4:
-            tests.append({
-                "question": question,
-                "options": options,
-                "answer": options[0]   # A всегда правильный
-            })
+    block = block.strip()
+    if not block:
+        continue
+
+    # вопрос = всё до первого варианта
+    question = re.split(r"[A-E]\)", block)[0].strip()
+
+    # варианты
+    options = re.findall(r"[A-E]\)\s*(.*?)(?=(?:[A-E]\)|$))", block, re.S)
+
+    options = [o.replace("\n", " ").strip().rstrip(";") for o in options]
+
+    if len(options) >= 4:
+        tests.append({
+            "question": question,
+            "options": options,
+            "answer": options[0]
+        })
 
     return tests
 
@@ -56,6 +69,8 @@ if "i" not in st.session_state:
 # ---------- LOAD ON START ----------
 text = load_pdf()
 tests = parse_tests(text)
+
+random.shuffle(tests) 
 
 st.write("Готово тестов:", len(tests))
 
