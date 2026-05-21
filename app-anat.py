@@ -129,7 +129,4 @@ if st.session_state.get("checked", False):
         st.session_state.selected = None
         st.rerun()
 
-# ---------- FINISH ----------
-else:
-    st.success("🎉 Тест завершён!")
-    st.write(f"Результат: {st.session_state.score}/{len(tests)}")
+
