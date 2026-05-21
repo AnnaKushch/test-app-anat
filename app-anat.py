@@ -9,6 +9,7 @@ st.title("📚 Medical Test Trainer")
 
 
 # ---------- LOAD PDF ----------
+@st.cache_data
 def load_pdf():
     with pdfplumber.open("тести анат.pdf") as pdf:
         text = ""
@@ -19,6 +20,7 @@ def load_pdf():
 
 
 # ---------- PARSER (твоя логика) ----------
+@st.cache_data
 def parse_tests(text):
 
     text_clean = text.replace("\xa0", " ")
@@ -69,6 +71,10 @@ if "i" not in st.session_state:
 # ---------- LOAD ON START ----------
 text = load_pdf()
 tests = parse_tests(text)
+
+if "shuffled" not in st.session_state:
+    random.shuffle(tests)
+    st.session_state.shuffled = True
 
 random.shuffle(tests) 
 
