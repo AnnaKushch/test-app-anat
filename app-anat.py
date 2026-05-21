@@ -81,56 +81,53 @@ random.shuffle(tests)
 st.write("Готово тестов:", len(tests))
 
 
-# ---------- CURRENT QUESTION ----------
+# ---------- CURRENT TEST ----------
 i = st.session_state.i
+test = tests[i]
+
+st.subheader(test["question"])
+
+# ---------- ANSWER SELECTION ----------
+for opt in test["options"]:
+    if st.button(opt, key=opt):
+
+        st.session_state.selected = opt
+        st.session_state.checked = True
 
 
-if i < len(tests):
+# ---------- CHECK RESULT ----------
+if st.session_state.get("checked", False):
 
-    test = tests[i]
+    correct = test["answer"]
 
-    st.subheader(test["question"])
-    st.write("")
+    st.write("---")
 
-    # ---------- ANSWERS ----------
     for opt in test["options"]:
 
-        if st.button(opt):
+        if opt == correct:
+            st.markdown("🟢 " + opt)
 
-            st.session_state.selected = opt
-            st.session_state.checked = True
+        elif opt == st.session_state.selected:
+            st.markdown("🔴 " + opt)
 
-
-    # ---------- RESULT ----------
-    if st.session_state.checked:
-
-        correct = test["answer"]
-
-        st.write("---")
-
-        for opt in test["options"]:
-
-            if opt == correct:
-                st.markdown("🟢 " + opt)
-
-            elif opt == st.session_state.selected:
-                st.markdown("🔴 " + opt)
-
-            else:
-                st.markdown("⚪ " + opt)
-
-        if st.session_state.selected == correct:
-            st.success("✅ Правильно")
-            st.session_state.score += 1
         else:
-            st.error(f"❌ Неправильно. Правильный ответ: {correct}")
+            st.markdown("⚪ " + opt)
 
-        if st.button("Дальше ➡️"):
-            st.session_state.i += 1
-            st.session_state.checked = False
-            st.session_state.selected = None
-            st.rerun()
+    # ---------- TEXT FEEDBACK ----------
+    if st.session_state.selected == correct:
+        st.success("✅ Правильно")
+        st.session_state.score += 1
+    else:
+        st.error(f"❌ Неправильно. Правильный ответ: {correct}")
 
+
+    # ---------- NEXT BUTTON ----------
+    if st.button("Дальше ➡️"):
+
+        st.session_state.i += 1
+        st.session_state.checked = False
+        st.session_state.selected = None
+        st.rerun()
 
 # ---------- FINISH ----------
 else:
