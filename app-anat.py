@@ -1,1 +1,86 @@
+import streamlit as st
+import pdfplumber
+import re
 
+st.title("📚 Medical Test Trainer")
+
+uploaded = st.file_uploader("Загрузи PDF", type=["pdf"])
+
+def parse(text):
+    text = text.replace("\xa0", " ")
+    blocks = re.split(r"\n?\d+\.\s", text)
+
+    tests = []
+
+    for b in blocks:
+        b = b.strip()
+        if not b:
+            continue
+
+        question = re.split(r"[A-E]\)", b)[0].strip()
+
+        options = re.findall(r"[A-E]\)\s*(.*?)(?=(?:[A-E]\)|$))", b, re.S)
+        options = [o.replace("\n"," ").strip() for o in options]
+
+        if len(options) >= 4:
+            tests.append({
+                "question": question,
+                "options": options,
+                "answer": options[0]
+            })
+
+    return tests
+
+
+if uploaded:
+    text = pdfplumber.open(uploaded).pages[0].extract_text()
+    for page in pdfplumber.open(uploaded).pages[1:]:
+        if page.extract_text():
+            text += page.extract_text()
+
+    tests = parse(text)
+
+    st.write("Готово тестов:", len(tests))
+
+    if "i" not in st.session_state:
+        st.session_state.i = 0
+        st.session_state.score = 0
+        st.session_state.checked = False
+        st.session_state.selected = None
+
+    i = st.session_state.i
+
+    if i < len(tests):
+        t = tests[i]
+
+        st.subheader(t["question"])
+
+        for opt in t["options"]:
+            if st.button(opt):
+                st.session_state.selected = opt
+                st.session_state.checked = True
+
+        if st.session_state.checked:
+            for opt in t["options"]:
+                if opt == t["answer"]:
+                    st.markdown("🟢 " + opt)
+                elif opt == st.session_state.selected:
+                    st.markdown("🔴 " + opt)
+                else:
+                    st.markdown("⚪ " + opt)
+
+            if st.session_state.selected == t["answer"]:
+                st.success("Правильно")
+                st.session_state.score += 1
+            else:
+                st.error("Неправильно")
+
+            if st.button("Дальше ➡️"):
+                st.session_state.i += 1
+                st.session_state.checked = False
+                st.session_state.selected = None
+                st.rerun()
+
+    else:
+        st.success("Тест завершён!")
+        st.write(f"Результат: {st.session_state.score}/{len(tests)}")
