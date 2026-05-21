@@ -23,37 +23,37 @@ def parse_tests(text):
 
     text_clean = text.replace("\xa0", " ")
 
-# 🔥 заменяем кириллическую А на латинскую A
-text_clean = text_clean.replace("А)", "A)")
-text_clean = text_clean.replace("В)", "B)")
-text_clean = text_clean.replace("С)", "C)")
-text_clean = text_clean.replace("D)", "D)")
-text_clean = text_clean.replace("E)", "E)")
+    # 🔥 заменяем кириллическую А на латинскую A
+    text_clean = text_clean.replace("А)", "A)")
+    text_clean = text_clean.replace("В)", "B)")
+    text_clean = text_clean.replace("С)", "C)")
+    text_clean = text_clean.replace("D)", "D)")
+    text_clean = text_clean.replace("E)", "E)")
+    
+    blocks = re.split(r"\n?\d+\.\s", text_clean)
+    
+    tests = []
 
-blocks = re.split(r"\n?\d+\.\s", text_clean)
-
-tests = []
-
-for block in blocks:
-
-    block = block.strip()
-    if not block:
-        continue
-
-    # вопрос = всё до первого варианта
-    question = re.split(r"[A-E]\)", block)[0].strip()
-
-    # варианты
-    options = re.findall(r"[A-E]\)\s*(.*?)(?=(?:[A-E]\)|$))", block, re.S)
-
-    options = [o.replace("\n", " ").strip().rstrip(";") for o in options]
-
-    if len(options) >= 4:
-        tests.append({
-            "question": question,
-            "options": options,
-            "answer": options[0]
-        })
+    for block in blocks:
+    
+        block = block.strip()
+        if not block:
+            continue
+    
+        # вопрос = всё до первого варианта
+        question = re.split(r"[A-E]\)", block)[0].strip()
+    
+        # варианты
+        options = re.findall(r"[A-E]\)\s*(.*?)(?=(?:[A-E]\)|$))", block, re.S)
+    
+        options = [o.replace("\n", " ").strip().rstrip(";") for o in options]
+    
+        if len(options) >= 4:
+            tests.append({
+                "question": question,
+                "options": options,
+                "answer": options[0]
+            })
 
     return tests
 
