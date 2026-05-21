@@ -81,22 +81,25 @@ random.shuffle(tests)
 st.write("Готово тестов:", len(tests))
 
 
-# ---------- CURRENT TEST ----------
 i = st.session_state.i
 test = tests[i]
 
 st.subheader(test["question"])
 
-# ---------- ANSWER SELECTION ----------
-for opt in test["options"]:
-    if st.button(opt, key=opt):
+# ---------- SHOW OPTIONS ----------
+if not st.session_state.checked:
 
-        st.session_state.selected = opt
-        st.session_state.checked = True
+    for opt in test["options"]:
+
+        if st.button(opt, key=opt):
+
+            st.session_state.selected = opt
+            st.session_state.checked = True
+            st.rerun()
 
 
-# ---------- CHECK RESULT ----------
-if st.session_state.get("checked", False):
+# ---------- SHOW RESULT ----------
+else:
 
     correct = test["answer"]
 
@@ -113,20 +116,24 @@ if st.session_state.get("checked", False):
         else:
             st.markdown("⚪ " + opt)
 
-    # ---------- TEXT FEEDBACK ----------
+    # ---------- SCORE ----------
     if st.session_state.selected == correct:
         st.success("✅ Правильно")
-        st.session_state.score += 1
+
+        # защита от двойного подсчёта
+        if not st.session_state.get("counted", False):
+            st.session_state.score += 1
+            st.session_state.counted = True
+
     else:
-        st.error(f"❌ Неправильно. Правильный ответ: {correct}")
+        st.error(f"❌ Неправильно. Правильный: {correct}")
 
-
-    # ---------- NEXT BUTTON ----------
+    # ---------- NEXT ----------
     if st.button("Дальше ➡️"):
 
         st.session_state.i += 1
         st.session_state.checked = False
         st.session_state.selected = None
+        st.session_state.counted = False
+
         st.rerun()
-
-
