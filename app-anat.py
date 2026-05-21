@@ -66,32 +66,45 @@ if "i" not in st.session_state:
     st.session_state.score = 0
     st.session_state.checked = False
     st.session_state.selected = None
-
+    st.session_state.counted = False
 
 # ---------- LOAD ON START ----------
 text = load_pdf()
 tests = parse_tests(text)
 
-if "shuffled" not in st.session_state:
+# сохраняем один раз
+if "tests" not in st.session_state:
     random.shuffle(tests)
-    st.session_state.shuffled = True
+    st.session_state.tests = tests
 
-random.shuffle(tests) 
+tests = st.session_state.tests
+
 
 st.write("Готово тестов:", len(tests))
 
-
 i = st.session_state.i
-test = tests[i]
+
+# reset состояния при смене вопроса
+if "last_i" not in st.session_state:
+    st.session_state.last_i = -1
+
+if st.session_state.last_i != i:
+    st.session_state.checked = False
+    st.session_state.selected = None
+    st.session_state.counted = False
+    st.session_state.last_i = i
+
+
+test = st.session_state.tests[i]
 
 st.subheader(test["question"])
 
 # ---------- SHOW OPTIONS ----------
-if not st.session_state.checked:
+if st.session_state.get("checked", False) is False:
 
     for opt in test["options"]:
 
-        if st.button(opt, key=opt):
+        if st.button(opt, key=f"{i}_{opt}"):
 
             st.session_state.selected = opt
             st.session_state.checked = True
