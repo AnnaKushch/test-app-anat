@@ -1,0 +1,11 @@
+import streamlit as st
+
+st.title("📚 Test Trainer")
+
+question = "Пример вопроса"
+options = ["A", "B", "C", "D"]
+
+st.subheader(question)
+
+for opt in options:
+    st.button(opt)
