@@ -2,155 +2,116 @@ import streamlit as st
 import pdfplumber
 import re
 
-st.title("📚 Анат Test Trainer")
+st.set_page_config(page_title="Test Trainer", layout="centered")
 
-# ---------- PARSER ----------
-text = ""
-
-with pdfplumber.open("тести анат.pdf") as pdf:
-    for page in pdf.pages:
-        page_text = page.extract_text()
-        if page_text:
-            text += page_text + "\n"
-
-text_clean = text.replace("\xa0", " ")
-
-# 🔥 заменяем кириллическую А на латинскую A
-text_clean = text_clean.replace("А)", "A)")
-text_clean = text_clean.replace("В)", "B)")
-text_clean = text_clean.replace("С)", "C)")
-text_clean = text_clean.replace("D)", "D)")
-text_clean = text_clean.replace("E)", "E)")
-
-blocks = re.split(r"\n?\d+\.\s", text_clean)
-
-tests = []
-
-for block in blocks:
-
-    block = block.strip()
-    if not block:
-        continue
-
-    # вопрос = всё до первого варианта
-    question = re.split(r"[A-E]\)", block)[0].strip()
-
-    # варианты
-    options = re.findall(r"[A-E]\)\s*(.*?)(?=(?:[A-E]\)|$))", block, re.S)
-
-    options = [o.replace("\n", " ").strip().rstrip(";") for o in options]
-
-    if len(options) >= 4:
-        tests.append({
-            "question": question,
-            "options": options,
-            "answer": options[0]
-        })
+st.title("📚 Medical Test Trainer")
 
 
-import ipywidgets as widgets
-from IPython.display import display, clear_output
-import random
+# ---------- LOAD PDF ----------
+def load_pdf():
+    with pdfplumber.open("тести анат.pdf") as pdf:
+        text = ""
+        for page in pdf.pages:
+            if page.extract_text():
+                text += page.extract_text() + "\n"
+    return text
 
-random.shuffle(tests)
 
-score = 0
-current_question = 0
+# ---------- PARSER (твоя логика) ----------
+def parse_tests(text):
 
-def show_question():
+    text = text.replace("\xa0", " ")
+    blocks = re.split(r"\n?\d+\.\s", text)
 
-    clear_output(wait=True)
+    tests = []
 
-    global current_question
+    for block in blocks:
+        block = block.strip()
+        if not block:
+            continue
 
-    if current_question >= len(tests):
-        print("Тест завершён!")
-        print(f"Результат: {score}/{len(tests)}")
-        return
+        question = re.split(r"[A-E]\)", block)[0].strip()
 
-    test = tests[current_question]
+        options = re.findall(r"[A-E]\)\s*(.*?)(?=(?:[A-E]\)|$))", block, re.S)
+        options = [o.replace("\n", " ").strip().rstrip(";") for o in options]
 
-    print(test["question"])
-    print()
+        if len(options) >= 4:
+            tests.append({
+                "question": question,
+                "options": options,
+                "answer": options[0]   # A всегда правильный
+            })
 
-    for option in test["options"]:
+    return tests
 
-        btn = widgets.Button(
-            description=option,
-            layout=widgets.Layout(width='600px')
-        )
 
-        btn.on_click(lambda b, opt=option: check_answer(opt))
+# ---------- INIT ----------
+if "i" not in st.session_state:
+    st.session_state.i = 0
+    st.session_state.score = 0
+    st.session_state.checked = False
+    st.session_state.selected = None
 
-        display(btn)
 
-def check_answer(selected):
+# ---------- LOAD ON START ----------
+text = load_pdf()
+tests = parse_tests(text)
 
-    global score, current_question
+st.write("Готово тестов:", len(tests))
 
-    test = tests[current_question]
-    correct = test["answer"]
 
-    clear_output(wait=True)
+# ---------- CURRENT QUESTION ----------
+i = st.session_state.i
 
-    # Вопрос
-    question_html = widgets.HTML(
-        f"<h3>{test['question']}</h3>"
-    )
 
-    display(question_html)
+if i < len(tests):
 
-    # Ответы
-    for option in test["options"]:
+    test = tests[i]
 
-        # Правильный ответ
-        if option == correct:
-            style = "success"
+    st.subheader(test["question"])
+    st.write("")
 
-        # Неправильный выбранный
-        elif option == selected:
-            style = "danger"
+    # ---------- ANSWERS ----------
+    for opt in test["options"]:
 
+        if st.button(opt):
+
+            st.session_state.selected = opt
+            st.session_state.checked = True
+
+
+    # ---------- RESULT ----------
+    if st.session_state.checked:
+
+        correct = test["answer"]
+
+        st.write("---")
+
+        for opt in test["options"]:
+
+            if opt == correct:
+                st.markdown("🟢 " + opt)
+
+            elif opt == st.session_state.selected:
+                st.markdown("🔴 " + opt)
+
+            else:
+                st.markdown("⚪ " + opt)
+
+        if st.session_state.selected == correct:
+            st.success("✅ Правильно")
+            st.session_state.score += 1
         else:
-            style = ""
+            st.error(f"❌ Неправильно. Правильный ответ: {correct}")
 
-        button = widgets.Button(
-            description=option,
-            disabled=True,
-            button_style=style,
-            layout=widgets.Layout(width='400px')
-        )
-
-        display(button)
-
-    # Текст результата
-    if selected == correct:
-        display(widgets.HTML(
-            "<h3 style='color:green;'>✅ Правильно!</h3>"
-        ))
-        score += 1
-    else:
-        display(widgets.HTML(
-            f"<h3 style='color:red;'>❌ Неправильно</h3>"
-            f"<p>Правильный ответ: <b>{correct}</b></p>"
-        ))
-
-    # Кнопка дальше
-    next_button = widgets.Button(
-        description="Дальше",
-        button_style="info",
-        layout=widgets.Layout(width='200px')
-    )
-
-    def next_question(b):
-        global current_question
-
-        current_question += 1
-        show_question()
-
-    next_button.on_click(next_question)
-
-    display(next_button)
+        if st.button("Дальше ➡️"):
+            st.session_state.i += 1
+            st.session_state.checked = False
+            st.session_state.selected = None
+            st.rerun()
 
 
-show_question()
+# ---------- FINISH ----------
+else:
+    st.success("🎉 Тест завершён!")
+    st.write(f"Результат: {st.session_state.score}/{len(tests)}")
