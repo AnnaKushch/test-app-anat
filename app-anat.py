@@ -7,7 +7,7 @@ st.title("📚 Анат Test Trainer")
 # ---------- PARSER ----------
 text = ""
 
-with pdfplumber.open(filename) as pdf:
+with pdfplumber.open("тести анат.pdf") as pdf:
     for page in pdf.pages:
         page_text = page.extract_text()
         if page_text:
