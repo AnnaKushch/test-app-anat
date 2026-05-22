@@ -68,6 +68,15 @@ if "i" not in st.session_state:
     st.session_state.selected = None
     st.session_state.counted = False
 
+if "exam_tests" not in st.session_state:
+    st.session_state.exam_tests = random.sample(st.session_state.tests, 50)
+
+if "results" not in st.session_state:
+    st.session_state.results = []
+
+if "saved_answer" not in st.session_state:
+    st.session_state.saved_answer = False
+
 # ---------- LOAD ON START ----------
 text = load_pdf()
 tests = parse_tests(text)
@@ -95,7 +104,47 @@ if st.session_state.last_i != i:
     st.session_state.last_i = i
 
 
-test = st.session_state.tests[i]
+test = st.session_state.exam_tests[i]
+
+if st.session_state.i >= 50:
+
+    st.success("🎉 Экзамен завершён!")
+
+    correct_answers = sum(r["is_correct"] for r in st.session_state.results)
+
+    st.write(f"Результат: {correct_answers}/50")
+
+    st.write("---")
+    st.header("📋 Разбор ошибок")
+
+    for idx, r in enumerate(st.session_state.results, start=1):
+
+        if r["is_correct"]:
+            st.markdown(f"### {idx}. ✅")
+        else:
+            st.markdown(f"### {idx}. ❌")
+
+        st.write(r["question"])
+        st.markdown(f"**Твой ответ:** {r['selected']}")
+        st.markdown(f"**Правильный:** 🟢 {r['correct']}")
+
+        st.write("---")
+
+    if st.button("🔄 Начать заново"):
+
+        st.session_state.i = 0
+        st.session_state.score = 0
+        st.session_state.checked = False
+        st.session_state.selected = None
+        st.session_state.counted = False
+        st.session_state.saved_answer = False
+        st.session_state.results = []
+
+        st.session_state.exam_tests = random.sample(st.session_state.tests, 50)
+
+        st.rerun()
+
+    st.stop()
 
 st.subheader(test["question"])
 
@@ -130,6 +179,17 @@ else:
             st.markdown("⚪ " + opt)
 
     # ---------- SCORE ----------
+    if not st.session_state.saved_answer:
+
+    st.session_state.results.append({
+        "question": test["question"],
+        "selected": st.session_state.selected,
+        "correct": correct,
+        "is_correct": st.session_state.selected == correct
+    })
+
+    st.session_state.saved_answer = True
+    
     if st.session_state.selected == correct:
         st.success("✅ Правильно")
 
@@ -148,5 +208,6 @@ else:
         st.session_state.checked = False
         st.session_state.selected = None
         st.session_state.counted = False
+        st.session_state.saved_answer = False
 
         st.rerun()
