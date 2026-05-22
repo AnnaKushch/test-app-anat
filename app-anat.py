@@ -109,6 +109,8 @@ if "results" not in st.session_state:
 tests = st.session_state.exam_tests
 
 # ---------- SHOW OPTIONS ----------
+i = st.session_state.i
+test = tests[i]
 if st.session_state.get("checked", False) is False:
 
     for opt in test["options"]:
