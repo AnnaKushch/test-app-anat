@@ -78,32 +78,25 @@ if "results" not in st.session_state:
 text = load_pdf()
 tests = parse_tests(text)
 
-# сохраняем один раз
+# сохраняем все тесты
 if "tests" not in st.session_state:
     random.shuffle(tests)
     st.session_state.tests = tests
 
-tests = st.session_state.tests
+# создаём экзамен из 50 вопросов
+if "exam_tests" not in st.session_state:
+    st.session_state.exam_tests = random.sample(
+        st.session_state.tests,
+        50
+    )
 
+# результаты
+if "results" not in st.session_state:
+    st.session_state.results = []
 
-st.write("Готово тестов:", len(tests))
+tests = st.session_state.exam_tests
 
-i = st.session_state.i
-
-# reset состояния при смене вопроса
-if "last_i" not in st.session_state:
-    st.session_state.last_i = -1
-
-if st.session_state.last_i != i:
-    st.session_state.checked = False
-    st.session_state.selected = None
-    st.session_state.counted = False
-    st.session_state.last_i = i
-
-
-test = st.session_state.exam_tests[i]
-
-st.subheader(test["question"])
+st.write("Вопросов в экзамене:", len(tests))
 
 # ---------- SHOW OPTIONS ----------
 if st.session_state.get("checked", False) is False:
