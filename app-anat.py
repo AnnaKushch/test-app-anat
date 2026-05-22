@@ -63,33 +63,42 @@ def parse_tests(text):
 # ---------- INIT ----------
 if "i" not in st.session_state:
     st.session_state.i = 0
+
+if "score" not in st.session_state:
     st.session_state.score = 0
+
+if "checked" not in st.session_state:
     st.session_state.checked = False
+
+if "selected" not in st.session_state:
     st.session_state.selected = None
+
+if "counted" not in st.session_state:
     st.session_state.counted = False
-
-if "exam_tests" not in st.session_state:
-    st.session_state.exam_tests = random.sample(st.session_state.tests, 50)
-
-if "results" not in st.session_state:
-    st.session_state.results = []
 
 if "saved_answer" not in st.session_state:
     st.session_state.saved_answer = False
 
+if "results" not in st.session_state:
+    st.session_state.results = []
+
 # ---------- LOAD ON START ----------
 text = load_pdf()
-tests = parse_tests(text)
+parsed_tests = parse_tests(text)
 
-# сохраняем один раз
+# все тесты
 if "tests" not in st.session_state:
-    random.shuffle(tests)
-    st.session_state.tests = tests
+    random.shuffle(parsed_tests)
+    st.session_state.tests = parsed_tests
 
-tests = st.session_state.tests
+# экзамен 50 вопросов
+if "exam_tests" not in st.session_state:
+    st.session_state.exam_tests = random.sample(
+        st.session_state.tests,
+        50
+    )
 
-
-st.write("Готово тестов:", len(tests))
+st.write("Готово тестов:", len(st.session_state.exam_tests))
 
 i = st.session_state.i
 
@@ -104,9 +113,8 @@ if st.session_state.last_i != i:
     st.session_state.last_i = i
 
 
-test = st.session_state.exam_tests[i]
-
-if st.session_state.i >= 50:
+# 💥 ВАЖНО: СНАЧАЛА проверка конца
+if i >= 50:
 
     st.success("🎉 Экзамен завершён!")
 
@@ -140,11 +148,18 @@ if st.session_state.i >= 50:
         st.session_state.saved_answer = False
         st.session_state.results = []
 
-        st.session_state.exam_tests = random.sample(st.session_state.tests, 50)
+        st.session_state.exam_tests = random.sample(
+            st.session_state.tests,
+            50
+        )
 
         st.rerun()
 
     st.stop()
+
+
+# 💥 ТОЛЬКО ПОСЛЕ ЭТОГО можно брать вопрос
+test = st.session_state.exam_tests[i]
 
 st.subheader(test["question"])
 
