@@ -63,56 +63,43 @@ def parse_tests(text):
 # ---------- INIT ----------
 if "i" not in st.session_state:
     st.session_state.i = 0
-
-if "score" not in st.session_state:
     st.session_state.score = 0
-
-if "checked" not in st.session_state:
     st.session_state.checked = False
-
-if "selected" not in st.session_state:
     st.session_state.selected = None
-
-if "counted" not in st.session_state:
     st.session_state.counted = False
 
-if "saved_answer" not in st.session_state:
-    st.session_state.saved_answer = False
-
-
-# ---------- LOAD ----------
+# ---------- LOAD ON START ----------
 text = load_pdf()
-parsed_tests = parse_tests(text)
+tests = parse_tests(text)
 
-# все тесты
+# сохраняем один раз
 if "tests" not in st.session_state:
+    random.shuffle(tests)
+    st.session_state.tests = tests
 
-    random.shuffle(parsed_tests)
-
-    st.session_state.tests = parsed_tests
-
-
-# экзамен 50 вопросов
-if "exam_tests" not in st.session_state:
-
-    st.session_state.exam_tests = random.sample(
-        st.session_state.tests,
-        50
-    )
+tests = st.session_state.tests
 
 
-# результаты
-if "results" not in st.session_state:
-    st.session_state.results = []
+st.write("Готово тестов:", len(tests))
+
+i = st.session_state.i
+
+# reset состояния при смене вопроса
+if "last_i" not in st.session_state:
+    st.session_state.last_i = -1
+
+if st.session_state.last_i != i:
+    st.session_state.checked = False
+    st.session_state.selected = None
+    st.session_state.counted = False
+    st.session_state.last_i = i
 
 
-tests = st.session_state.exam_tests
+test = st.session_state.tests[i]
+
+st.subheader(test["question"])
 
 # ---------- SHOW OPTIONS ----------
-i = st.session_state.i
-test = tests[i]
-correct = test["answer"]
-
 if st.session_state.get("checked", False) is False:
 
     for opt in test["options"]:
@@ -143,18 +130,6 @@ else:
             st.markdown("⚪ " + opt)
 
     # ---------- SCORE ----------
-    # сохраняем результат вопроса
-if not st.session_state.get("saved_answer", False):
-
-    st.session_state.results.append({
-        "question": test["question"],
-        "selected": st.session_state.selected,
-        "correct": correct,
-        "is_correct": st.session_state.selected == correct
-    })
-
-    st.session_state.saved_answer = True
-    
     if st.session_state.selected == correct:
         st.success("✅ Правильно")
 
@@ -173,65 +148,5 @@ if not st.session_state.get("saved_answer", False):
         st.session_state.checked = False
         st.session_state.selected = None
         st.session_state.counted = False
-        st.session_state.saved_answer = False
-    
-        st.rerun()
-
-# ---------- FINISH CHECK ----------
-if st.session_state.i >= 50:
-
-    st.success("🎉 Экзамен завершён!")
-
-    correct_answers = sum(
-        r["is_correct"]
-        for r in st.session_state.results
-    )
-
-    st.write(f"Результат: {correct_answers}/50")
-
-    st.write("---")
-    st.header("📋 Разбор ошибок")
-
-    for idx, r in enumerate(st.session_state.results, start=1):
-
-        if r["is_correct"]:
-            st.markdown(f"### {idx}. ✅")
-        else:
-            st.markdown(f"### {idx}. ❌")
-
-        st.write(r["question"])
-
-        st.markdown(f"**Твой ответ:** {r['selected']}")
-        st.markdown(f"**Правильный ответ:** 🟢 {r['correct']}")
-
-        st.write("---")
-
-
-    if st.button("🔄 Начать заново"):
-
-        st.session_state.i = 0
-        st.session_state.score = 0
-        st.session_state.checked = False
-        st.session_state.selected = None
-        st.session_state.counted = False
-        st.session_state.saved_answer = False
-
-        st.session_state.results = []
-
-        st.session_state.exam_tests = random.sample(
-            st.session_state.tests,
-            50
-        )
 
         st.rerun()
-
-    st.stop()
-
-
-# ---------- CURRENT QUESTION ----------
-i = st.session_state.i
-test = tests[i]
-
-st.write(f"Вопрос {i+1} из 50")
-
-st.subheader(test["question"])
