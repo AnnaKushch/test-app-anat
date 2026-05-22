@@ -161,6 +161,8 @@ if i >= 50:
 # 💥 ТОЛЬКО ПОСЛЕ ЭТОГО можно брать вопрос
 test = st.session_state.exam_tests[i]
 
+st.write(f"### Вопрос {i + 1} / 50")
+
 st.subheader(test["question"])
 
 # ---------- SHOW OPTIONS ----------
