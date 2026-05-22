@@ -63,29 +63,36 @@ def parse_tests(text):
 # ---------- INIT ----------
 if "i" not in st.session_state:
     st.session_state.i = 0
+
+if "score" not in st.session_state:
     st.session_state.score = 0
+
+if "checked" not in st.session_state:
     st.session_state.checked = False
+
+if "selected" not in st.session_state:
     st.session_state.selected = None
+
+if "counted" not in st.session_state:
     st.session_state.counted = False
 
-if "exam_tests" not in st.session_state:
-    st.session_state.exam_tests = random.sample(st.session_state.tests, 50)
+if "saved_answer" not in st.session_state:
+    st.session_state.saved_answer = False
 
-if "results" not in st.session_state:
-    st.session_state.results = []
 
-# ---------- LOAD ON START ----------
+# ---------- LOAD ----------
 text = load_pdf()
 parsed_tests = parse_tests(text)
 
-# сохраняем ВСЕ тесты
+# все тесты
 if "tests" not in st.session_state:
 
     random.shuffle(parsed_tests)
 
     st.session_state.tests = parsed_tests
 
-# создаём экзамен из 50 вопросов
+
+# экзамен 50 вопросов
 if "exam_tests" not in st.session_state:
 
     st.session_state.exam_tests = random.sample(
@@ -93,14 +100,13 @@ if "exam_tests" not in st.session_state:
         50
     )
 
+
 # результаты
 if "results" not in st.session_state:
     st.session_state.results = []
 
-# используем экзаменационные вопросы
-tests = st.session_state.exam_tests
 
-st.write("Вопросов в экзамене:", len(tests))
+tests = st.session_state.exam_tests
 
 # ---------- SHOW OPTIONS ----------
 if st.session_state.get("checked", False) is False:
@@ -167,12 +173,15 @@ if not st.session_state.get("saved_answer", False):
     
         st.rerun()
 
-# ---------- FINISH ----------
-if i >= 50:
+# ---------- FINISH CHECK ----------
+if st.session_state.i >= 50:
 
     st.success("🎉 Экзамен завершён!")
 
-    correct_answers = sum(r["is_correct"] for r in st.session_state.results)
+    correct_answers = sum(
+        r["is_correct"]
+        for r in st.session_state.results
+    )
 
     st.write(f"Результат: {correct_answers}/50")
 
@@ -193,7 +202,7 @@ if i >= 50:
 
         st.write("---")
 
-    # ---------- RESTART ----------
+
     if st.button("🔄 Начать заново"):
 
         st.session_state.i = 0
@@ -211,3 +220,14 @@ if i >= 50:
         )
 
         st.rerun()
+
+    st.stop()
+
+
+# ---------- CURRENT QUESTION ----------
+i = st.session_state.i
+test = tests[i]
+
+st.write(f"Вопрос {i+1} из 50")
+
+st.subheader(test["question"])
