@@ -181,14 +181,14 @@ else:
     # ---------- SCORE ----------
     if not st.session_state.saved_answer:
 
-    st.session_state.results.append({
-        "question": test["question"],
-        "selected": st.session_state.selected,
-        "correct": correct,
-        "is_correct": st.session_state.selected == correct
-    })
-
-    st.session_state.saved_answer = True
+        st.session_state.results.append({
+            "question": test["question"],
+            "selected": st.session_state.selected,
+            "correct": correct,
+            "is_correct": st.session_state.selected == correct
+        })
+    
+        st.session_state.saved_answer = True
     
     if st.session_state.selected == correct:
         st.success("✅ Правильно")
