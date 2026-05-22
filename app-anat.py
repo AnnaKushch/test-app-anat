@@ -111,6 +111,8 @@ tests = st.session_state.exam_tests
 # ---------- SHOW OPTIONS ----------
 i = st.session_state.i
 test = tests[i]
+correct = test["answer"]
+
 if st.session_state.get("checked", False) is False:
 
     for opt in test["options"]:
