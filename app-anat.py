@@ -76,15 +76,18 @@ if "results" not in st.session_state:
 
 # ---------- LOAD ON START ----------
 text = load_pdf()
-tests = parse_tests(text)
+parsed_tests = parse_tests(text)
 
-# сохраняем все тесты
+# сохраняем ВСЕ тесты
 if "tests" not in st.session_state:
-    random.shuffle(tests)
-    st.session_state.tests = tests
+
+    random.shuffle(parsed_tests)
+
+    st.session_state.tests = parsed_tests
 
 # создаём экзамен из 50 вопросов
 if "exam_tests" not in st.session_state:
+
     st.session_state.exam_tests = random.sample(
         st.session_state.tests,
         50
@@ -94,6 +97,7 @@ if "exam_tests" not in st.session_state:
 if "results" not in st.session_state:
     st.session_state.results = []
 
+# используем экзаменационные вопросы
 tests = st.session_state.exam_tests
 
 st.write("Вопросов в экзамене:", len(tests))
