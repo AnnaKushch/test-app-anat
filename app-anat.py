@@ -181,7 +181,7 @@ if i >= len(st.session_state.exam_tests):
                 st.session_state.tests,
                 50
             )
-        )
+        
 
         st.rerun()
 
