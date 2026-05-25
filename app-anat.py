@@ -84,6 +84,24 @@ if "results" not in st.session_state:
 text = load_pdf()
 tests = parse_tests(text)
 
+if st.session_state.get("finished", False):
+
+    st.success("🎉 Тест завершён!")
+
+    st.write(f"Результат: {st.session_state.score} / {len(st.session_state.exam_tests)}")
+
+    if st.button("🔄 Начать заново"):
+
+        st.session_state.started = False
+        st.session_state.finished = False
+        st.session_state.i = 0
+        st.session_state.score = 0
+        st.session_state.results = []
+
+        st.rerun()
+
+    st.stop()
+
 
 # ---------- HOME ----------
 if not st.session_state.started:
@@ -121,6 +139,11 @@ if not st.session_state.started:
 
 # ---------- CURRENT QUESTION ----------
 i = st.session_state.i
+# 🔥 защита от выхода за границы
+if i >= len(st.session_state.exam_tests):
+    st.session_state.finished = True
+    st.rerun()
+
 test = st.session_state.exam_tests[i]
 
 
@@ -196,26 +219,30 @@ st.markdown("### 📍 Навигация")
 
 cols = st.columns(5)
 
-for idx in range(len(st.session_state.exam_tests)):
+if "exam_tests" in st.session_state:
 
-    col = cols[idx % 5]
+    cols = st.columns(5)
 
-    with col:
+    for idx in range(len(st.session_state.exam_tests)):
 
-        label = str(idx + 1)
-
-        if idx < len(st.session_state.results):
-
-            if st.session_state.results[idx]["is_correct"]:
-                label = "🟢 " + label
+        col = cols[idx % 5]
+    
+        with col:
+    
+            label = str(idx + 1)
+    
+            if idx < len(st.session_state.results):
+    
+                if st.session_state.results[idx]["is_correct"]:
+                    label = "🟢 " + label
+                else:
+                    label = "🔴 " + label
             else:
-                label = "🔴 " + label
-        else:
-            label = "⚪ " + label
-
-        if st.button(label, key=f"nav_{idx}"):
-
-            st.session_state.i = idx
-            st.session_state.checked = False
-            st.session_state.selected = None
-            st.rerun()
+                label = "⚪ " + label
+    
+            if st.button(label, key=f"nav_{idx}"):
+    
+                st.session_state.i = idx
+                st.session_state.checked = False
+                st.session_state.selected = None
+                st.rerun()
