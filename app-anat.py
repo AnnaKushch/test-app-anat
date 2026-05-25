@@ -129,7 +129,7 @@ if not st.session_state.started:
         else:
             st.session_state.exam_tests = random.sample(
                 tests,
-                min(50, len(tests))
+                min(20, len(tests))
             )
 
         st.rerun()
