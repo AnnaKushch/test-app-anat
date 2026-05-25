@@ -86,17 +86,43 @@ if "results" not in st.session_state:
 text = load_pdf()
 parsed_tests = parse_tests(text)
 
+if "mode" not in st.session_state:
+
+    st.session_state.mode = None
+
+if "started" not in st.session_state:
+
+    st.title("📚 Anatomy Test Trainer")
+
+    mode = st.radio(
+        "Режим теста",
+        ["🔀 Случайный (50 вопросов)", "📖 По порядку (все вопросы)"]
+    )
+
+    if st.button("▶ Начать"):
+
+        st.session_state.mode = mode
+        st.session_state.started = True
+
+        st.rerun()
+
+    st.stop()
+
 # все тесты
 if "tests" not in st.session_state:
     random.shuffle(parsed_tests)
     st.session_state.tests = parsed_tests
 
-# экзамен 50 вопросов
 if "exam_tests" not in st.session_state:
-    st.session_state.exam_tests = random.sample(
-        st.session_state.tests,
-        50
-    )
+
+    if st.session_state.mode == "📖 По порядку (все вопросы)":
+        st.session_state.exam_tests = st.session_state.tests
+
+    else:
+        st.session_state.exam_tests = random.sample(
+            st.session_state.tests,
+            50
+        )
 
 st.write("Готово тестов:", len(st.session_state.exam_tests))
 
@@ -114,7 +140,7 @@ if st.session_state.last_i != i:
 
 
 # 💥 ВАЖНО: СНАЧАЛА проверка конца
-if i >= 50:
+if i >= len(st.session_state.exam_tests):
 
     st.success("🎉 Экзамен завершён!")
 
@@ -148,9 +174,13 @@ if i >= 50:
         st.session_state.saved_answer = False
         st.session_state.results = []
 
-        st.session_state.exam_tests = random.sample(
-            st.session_state.tests,
-            50
+        if st.session_state.mode == "📖 По порядку (все вопросы)":
+            st.session_state.exam_tests = st.session_state.tests
+        else:
+            st.session_state.exam_tests = random.sample(
+                st.session_state.tests,
+                50
+            )
         )
 
         st.rerun()
