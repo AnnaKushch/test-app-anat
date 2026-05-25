@@ -43,10 +43,15 @@ def parse_tests(text):
         options = [o.replace("\n", " ").strip() for o in options]
 
         if len(options) >= 4:
+
+            correct = options[0]   # сначала запоминаем правильный
+        
+            random.shuffle(options)  # потом перемешиваем
+        
             tests.append({
                 "question": question,
                 "options": options,
-                "answer": options[0]  # правильный всегда первый
+                "answer": correct
             })
 
     return tests
